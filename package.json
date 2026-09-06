@@ -1,0 +1,21 @@
+{
+  "name": "english-partner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "English learning partner — transcripts in, vocabulary into Notion, review out.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "build-dict": "python3 scripts/build_dict.py",
+    "resync": "node --env-file=.env scripts/resync.js",
+    "notion-page": "node scripts/notion-page.js",
+    "notion-setup": "node scripts/notion-setup.js",
+    "dashboards": "node scripts/dashboards.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0"
+  }
+}

@@ -1,0 +1,503 @@
+/* Speech Partner — a reading room, not a dashboard.
+   Light by default and by intent; dark only if explicitly asked for. */
+
+:root {
+  --paper: #fcfbf8;
+  --paper-2: #f4f1ea;
+  --card: #ffffff;
+  --ink: #1f1d1a;
+  --ink-2: #56514a;
+  --ink-3: #8c857a;
+  --line: #e6e1d6;
+  --line-2: #f0ece3;
+  --gold: #9a6f1c;
+  --gold-soft: #fbf0d6;
+  --gold-line: #e3c789;
+  --gold-glow: rgba(154, 111, 28, 0.1);
+  --green: #35704a;
+  --green-soft: #e6f2e9;
+  --red: #a8443a;
+  --red-soft: #fbe9e6;
+  --blue: #2f6188;
+  --blue-soft: #e8f0f6;
+  --blue-line: #a9c6da;
+  --fix-line: #bcd4e6;
+  --mark-bg: #ffdcae;
+  --mark-line: #e0a052;
+  --mark-ink: #85450c;
+  --radius: 10px;
+  --measure: 34rem;
+  --shadow: 0 1px 2px rgba(31, 29, 26, 0.04), 0 1px 3px rgba(31, 29, 26, 0.03);
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+:root[data-theme="dark"] {
+  --paper: #17161a;
+  --paper-2: #201f25;
+  --card: #23222a;
+  --ink: #ece8e0;
+  --ink-2: #b6b0a5;
+  --ink-3: #857f78;
+  --line: #34323d;
+  --line-2: #2a2933;
+  --gold: #d9a83f;
+  --gold-soft: #3b3220;
+  --gold-line: #6b5626;
+  --gold-glow: rgba(217, 168, 63, 0.16);
+  --green: #6bb37f;
+  --green-soft: #24352a;
+  --red: #d9776a;
+  --red-soft: #3a2724;
+  --blue: #7aa9cc;
+  --blue-soft: #1e2a33;
+  --blue-line: #3d5a70;
+  --fix-line: #46617a;
+  --mark-bg: #4d3418;
+  --mark-line: #8d6129;
+  --mark-ink: #f3c98d;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font: inherit; cursor: pointer; }
+
+/* ------------------------------------------------------------------ chrome */
+
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; gap: 1.5rem;
+  padding: 0.75rem 2rem;
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
+  backdrop-filter: saturate(1.3) blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  font-family: var(--serif); font-size: 1.05rem; font-weight: 600;
+  letter-spacing: -0.01em; color: var(--ink); white-space: nowrap;
+}
+.brand span { color: var(--gold); }
+.nav { display: flex; gap: 0.15rem; }
+.nav a {
+  padding: 0.32rem 0.8rem; border-radius: 99px; color: var(--ink-2);
+  font-size: 0.86rem; font-weight: 500; transition: background 0.12s, color 0.12s;
+}
+.nav a:hover { background: var(--paper-2); text-decoration: none; }
+.nav a.active { background: var(--ink); color: var(--paper); }
+
+.streak {
+  margin-left: auto; display: flex; align-items: center; gap: 1.25rem;
+  font-size: 0.78rem; color: var(--ink-3); white-space: nowrap;
+}
+.streak b { color: var(--ink); font-size: 0.92rem; font-variant-numeric: tabular-nums; font-weight: 600; }
+.streak .flame { color: var(--gold); }
+
+.wrap { max-width: 74rem; margin: 0 auto; padding: 2.5rem 2rem 6rem; }
+.narrow { max-width: 46rem; }
+
+h1 {
+  font-family: var(--serif); font-size: 1.85rem; line-height: 1.2;
+  margin: 0 0 0.4rem; font-weight: 600; letter-spacing: -0.015em;
+}
+h2 { font-family: var(--serif); font-size: 1.2rem; margin: 2rem 0 0.75rem; font-weight: 600; }
+.sub { color: var(--ink-3); font-size: 0.88rem; margin: 0 0 1.75rem; }
+
+/* ------------------------------------------------------------------ inputs */
+
+.field {
+  width: 100%; padding: 0.62rem 0.9rem;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--card); color: var(--ink); font: inherit;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.field::placeholder { color: var(--ink-3); }
+.field:focus { outline: none; border-color: var(--gold-line); box-shadow: 0 0 0 3px var(--gold-glow); }
+textarea.field { min-height: 8rem; resize: vertical; font-family: var(--serif); line-height: 1.6; }
+select.field { cursor: pointer; }
+
+.btn {
+  padding: 0.55rem 1.1rem; border-radius: var(--radius);
+  border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+  font-size: 0.86rem; font-weight: 500; transition: opacity 0.12s, background 0.12s;
+  white-space: nowrap;
+}
+.btn:hover { opacity: 0.86; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn.ghost { background: var(--card); color: var(--ink-2); border-color: var(--line); }
+.btn.ghost:hover { background: var(--paper-2); opacity: 1; border-color: var(--ink-3); }
+.btn.gold { background: var(--gold); border-color: var(--gold); color: #fff; }
+.btn.sm { padding: 0.26rem 0.62rem; font-size: 0.78rem; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.14rem 0.55rem; border-radius: 99px;
+  background: var(--paper-2); border: 1px solid var(--line);
+  font-size: 0.71rem; color: var(--ink-2); font-weight: 500; white-space: nowrap;
+}
+.chip.gold { background: var(--gold-soft); border-color: var(--gold-line); color: var(--gold); }
+.chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ----------------------------------------------------------------- catalog */
+
+.ingest {
+  display: flex; gap: 0.5rem; margin-bottom: 1.5rem; align-items: center;
+  padding: 0.55rem 0.6rem 0.55rem 0.4rem; background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.ingest .field { border: none; background: transparent; box-shadow: none; }
+.ingest .field:focus { box-shadow: none; }
+
+.layout { display: grid; grid-template-columns: 12rem 1fr; gap: 3rem; align-items: start; }
+@media (max-width: 820px) { .layout { grid-template-columns: 1fr; gap: 1.5rem; } }
+
+.facets h3 {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--ink-3); margin: 1.5rem 0 0.4rem; font-weight: 600;
+}
+.facets h3:first-child { margin-top: 0; }
+.facets .row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.24rem 0.55rem; border-radius: 7px; cursor: pointer;
+  font-size: 0.84rem; color: var(--ink-2); transition: background 0.1s;
+}
+.facets .row:hover { background: var(--paper-2); }
+.facets .row.on { background: var(--ink); color: var(--paper); }
+.facets .row small { opacity: 0.55; font-variant-numeric: tabular-nums; }
+
+.cards { display: grid; gap: 0.7rem; }
+.talkcard {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 1.1rem; align-items: center;
+  padding: 0.85rem 1.1rem; background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.talkcard:hover {
+  border-color: var(--gold-line);
+  box-shadow: 0 2px 8px rgba(31, 29, 26, 0.07);
+  text-decoration: none;
+}
+.talkcard .thumb {
+  width: 78px; height: 50px; border-radius: 6px; object-fit: cover;
+  background: var(--paper-2); flex: none;
+}
+.talkcard .t {
+  font-family: var(--serif); font-size: 1.02rem; font-weight: 600;
+  color: var(--ink); line-height: 1.3;
+}
+.talkcard .m {
+  font-size: 0.76rem; color: var(--ink-3); margin-top: 0.3rem;
+  display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center;
+}
+.ring { width: 38px; height: 38px; flex: none; }
+.ring text { font-size: 11px; fill: var(--ink-3); font-family: var(--sans); }
+
+.empty { padding: 3.5rem 1rem; text-align: center; color: var(--ink-3); }
+
+/* ------------------------------------------------------------------ reader */
+
+/* The header sits on the same axis as the transcript grid below it — a centred 34rem
+   header above a 70rem grid left the title, the controls and the legend describing content
+   they did not line up with. */
+.readhead { max-width: 48rem; margin: 0 auto 2rem; }
+.readhead h1 { max-width: 34rem; }
+.readhead h1 { font-size: 2rem; }
+.readhead .by { color: var(--ink-3); font-size: 0.86rem; }
+
+.transcript {
+  max-width: var(--measure); margin: 0 auto;
+  font-family: var(--serif); font-size: 1.18rem; line-height: 1.8; color: var(--ink);
+}
+.transcript p { margin: 0 0 1.5rem; }
+/* No transition here: it left the highlight stuck on the old value when the theme tokens changed. */
+.transcript .w { cursor: pointer; border-radius: 3px; padding: 0 1px; }
+.transcript .w:hover { background-color: var(--gold-glow); }
+/* A saved word is a FILL — orange, solid, no underline. */
+.transcript .w.saved {
+  background-color: var(--mark-bg); color: var(--mark-ink);
+  border-radius: 3px; font-weight: 600;
+}
+
+.progressbar {
+  position: fixed; top: 0; left: 0; height: 2px; background: var(--gold);
+  z-index: 60; transition: width 0.1s;
+}
+
+/* --------------------------------------------------------------- word card */
+
+.panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(26rem, 100%);
+  background: var(--card); border-left: 1px solid var(--line);
+  box-shadow: -12px 0 36px rgba(31, 29, 26, 0.08);
+  transform: translateX(100%); transition: transform 0.22s cubic-bezier(.3,.7,.3,1);
+  overflow-y: auto; z-index: 50; padding: 1.5rem;
+}
+.panel.open { transform: translateX(0); }
+.panel .close {
+  position: absolute; top: 0.8rem; right: 1rem; background: none; border: none;
+  color: var(--ink-3); font-size: 1.4rem; line-height: 1; padding: 0.2rem;
+}
+.panel .close:hover { color: var(--ink); }
+
+.wordhead { font-family: var(--serif); font-size: 1.95rem; font-weight: 600; margin: 0.3rem 0 0.1rem; letter-spacing: -0.015em; }
+.wordhead .infl { font-size: 0.82rem; color: var(--ink-3); font-family: var(--sans); font-weight: 400; }
+.phon { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0 1rem; }
+.phon button {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.26rem 0.6rem; border-radius: 99px;
+  border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2);
+  font-size: 0.78rem; font-family: var(--mono); transition: border-color 0.12s, color 0.12s;
+}
+.phon button:hover { border-color: var(--gold-line); color: var(--gold); background: var(--gold-soft); }
+.phon .lbl { font-family: var(--sans); font-weight: 600; font-size: 0.66rem; opacity: 0.6; letter-spacing: 0.04em; }
+
+.zh { font-size: 1rem; line-height: 1.7; margin: 0 0 0.9rem; }
+.tagrow { display: flex; flex-wrap: wrap; gap: 0.28rem; margin-bottom: 1.1rem; }
+
+.sect {
+  font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--ink-3); font-weight: 600; margin: 1.5rem 0 0.6rem;
+}
+
+/* The sense actually in play in this speech — visually the anchor of the card. */
+.incontext {
+  padding: 0.85rem 1rem; background: var(--gold-soft);
+  border: 1px solid var(--gold-line); border-radius: var(--radius);
+}
+.incontext p { margin: 0; font-family: var(--serif); font-size: 1rem; line-height: 1.5; color: var(--ink); }
+.incontext .zhline { color: var(--ink-2); font-size: 0.9rem; margin-top: 0.3rem; }
+.incontext .src { color: var(--gold); }
+.colloc {
+  font-family: var(--serif); font-size: 1.15rem; font-weight: 600;
+  color: var(--gold); margin-bottom: 0.45rem;
+}
+.colloc .collocnote { font-family: var(--sans); font-size: 0.72rem; font-weight: 400; color: var(--ink-3); }
+
+.ex { padding: 0.55rem 0 0.55rem 0.85rem; border-left: 2px solid var(--line); margin-bottom: 0.6rem; }
+.ex.fromtalk { border-left-color: var(--gold); }
+.ex.chosen { border-left-color: var(--gold); background: var(--gold-glow); border-radius: 0 6px 6px 0; }
+.ex p { margin: 0; font-family: var(--serif); font-size: 0.98rem; line-height: 1.5; }
+.ex .zhline { color: var(--ink-2); font-size: 0.86rem; margin-top: 0.2rem; font-family: var(--sans); }
+.ex .src { font-size: 0.67rem; color: var(--ink-3); margin-top: 0.35rem; letter-spacing: 0.02em; }
+.ex .src a { color: var(--ink-3); text-decoration: underline; text-decoration-color: var(--line); }
+.ex .src a:hover { color: var(--blue); }
+.ex .src .lic { opacity: 0.7; }
+
+.panel .actions {
+  display: flex; gap: 0.5rem; margin-top: 1.5rem; position: sticky; bottom: 0;
+  background: var(--card); padding: 0.8rem 0 0.2rem;
+}
+.panel .actions .btn { flex: 1; }
+
+/* ------------------------------------------------------------------- vocab */
+
+.wordlist { display: grid; gap: 0.5rem; }
+.wordrow {
+  display: grid; grid-template-columns: 11rem 1fr auto; gap: 1.2rem; align-items: center;
+  padding: 0.75rem 1.1rem; background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+@media (max-width: 720px) { .wordrow { grid-template-columns: 1fr; gap: 0.4rem; } }
+.wordrow .w { font-family: var(--serif); font-size: 1.12rem; font-weight: 600; }
+.wordrow .ipa { font-family: var(--mono); font-size: 0.74rem; color: var(--ink-3); }
+.wordrow .z { color: var(--ink-2); font-size: 0.9rem; }
+.wordrow .ctl { display: flex; gap: 0.3rem; align-items: center; }
+
+.status-new { color: var(--blue); }
+.status-learning { background: var(--gold-soft); border-color: var(--gold-line); color: var(--gold); }
+.status-known { background: var(--green-soft); border-color: transparent; color: var(--green); }
+.status-retired { color: var(--ink-3); }
+
+.flash {
+  min-height: 19rem; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1rem; padding: 2.5rem; background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--radius); text-align: center; box-shadow: var(--shadow);
+}
+.flash .big { font-family: var(--serif); font-size: 2.5rem; font-weight: 600; letter-spacing: -0.02em; }
+.flash .ctx { font-family: var(--serif); font-size: 1.05rem; color: var(--ink-2); max-width: 30rem; line-height: 1.6; }
+.flash .blank { color: var(--gold); border-bottom: 2px solid var(--gold-line); padding: 0 1.4rem; }
+
+.opts { display: grid; gap: 0.45rem; width: 100%; max-width: 26rem; }
+.opt {
+  padding: 0.68rem 1rem; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--paper-2); color: var(--ink); text-align: left; font-size: 0.94rem;
+  transition: border-color 0.12s, background 0.12s;
+}
+.opt:hover { border-color: var(--gold-line); background: var(--gold-soft); }
+.opt.right { background: var(--green-soft); border-color: var(--green); }
+.opt.wrong { background: var(--red-soft); border-color: var(--red); }
+
+/* ------------------------------------------------------------------- stats */
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: 0.7rem; margin-bottom: 2rem; }
+.tile {
+  padding: 0.95rem 1.1rem; background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.tile .n { font-family: var(--serif); font-size: 1.8rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.tile .l { font-size: 0.7rem; color: var(--ink-3); margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.07em; }
+
+.heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 10px); gap: 3px; overflow-x: auto; padding-bottom: 0.5rem; }
+.heat i { width: 10px; height: 10px; border-radius: 2px; background: var(--line-2); display: block; }
+.heat i[data-l="1"] { background: color-mix(in srgb, var(--gold) 25%, var(--line-2)); }
+.heat i[data-l="2"] { background: color-mix(in srgb, var(--gold) 50%, var(--line-2)); }
+.heat i[data-l="3"] { background: color-mix(in srgb, var(--gold) 75%, var(--line-2)); }
+.heat i[data-l="4"] { background: var(--gold); }
+
+/* ------------------------------------------------------------------- sheet */
+
+.sheet {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow);
+}
+.sheet h2 { margin-top: 1.8rem; border-bottom: 1px solid var(--line); padding-bottom: 0.35rem; }
+.sheet h2:first-of-type { margin-top: 0; }
+.sheet .item { padding: 0.45rem 0; border-bottom: 1px solid var(--line-2); }
+.sheet .item b { font-family: var(--serif); font-size: 1.04rem; }
+.sheet .item .ipa { font-family: var(--mono); font-size: 0.73rem; color: var(--ink-3); margin-left: 0.4rem; }
+.sheet .item .z { color: var(--ink-2); }
+.sheet .item .e { font-family: var(--serif); font-size: 0.9rem; color: var(--ink-3); font-style: italic; margin-top: 0.15rem; }
+
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(200%);
+  background: var(--ink); color: var(--paper); padding: 0.6rem 1.2rem; border-radius: 99px;
+  font-size: 0.86rem; z-index: 90; transition: transform 0.25s; box-shadow: 0 8px 24px rgba(31, 29, 26, 0.18);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid var(--line); border-top-color: var(--gold);
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media print {
+  .topbar, .ingest, .btn, .facets, select { display: none !important; }
+  body { background: #fff; }
+  .sheet { border: none; padding: 0; box-shadow: none; }
+  .wrap { padding: 0; max-width: none; }
+}
+
+/* ---------------------------------------------------------------- reader
+   One column of corrected text. Two visual channels that survive overlapping: a saved word
+   is a warm FILL, a correction is a cool LINE — different channels, not just different
+   hues, so a saved word inside a corrected phrase still reads as both. What the speaker
+   actually said is folded into each paragraph's notes, opened from the gutter. */
+
+.layers { margin-top: 0.9rem; }
+.legend {
+  display: flex; flex-wrap: wrap; gap: 0.45rem 1.25rem; align-items: baseline;
+  font-family: var(--sans); font-size: 0.76rem; color: var(--ink-3);
+}
+.legend .key { display: inline-flex; align-items: baseline; gap: 0.35rem; }
+.legend .key > span:first-child { font-family: var(--serif); font-size: 0.9rem; }
+/* The swatches live outside .transcript, so the marks are restated here — otherwise the
+   legend silently shows unstyled text, which is worse than no legend at all. */
+.legend .w.saved {
+  background-color: var(--mark-bg); color: var(--mark-ink);
+  font-weight: 600; border-radius: 3px; padding: 0 3px;
+}
+.legend .fix {
+  text-decoration: underline solid var(--fix-line);
+  text-decoration-thickness: 1px; text-underline-offset: 3px;
+}
+
+/* --- the column --- */
+.transcript { max-width: 48rem; }
+.prow {
+  display: grid; grid-template-columns: 1.9rem minmax(0, 1fr); gap: 0 0.9rem;
+  align-items: start; padding: 0 0 0.35rem;
+}
+.gutter {
+  grid-column: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 0.25rem; padding-top: 0.5rem;
+}
+.gtick {
+  width: 1.25rem; height: 1.25rem; border-radius: 5px; display: grid; place-items: center;
+  font-family: var(--mono); font-size: 0.6rem; line-height: 1; padding: 0;
+  cursor: pointer; background-color: var(--paper); color: var(--ink-3);
+  border: 1px solid var(--line); transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+}
+.gtick:hover { background-color: var(--blue-soft); color: var(--blue); border-color: var(--blue-line); }
+.gtick.k:hover { background-color: var(--green-soft); color: var(--green); border-color: var(--green); }
+.gtick:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.prow.open .gtick.g { background-color: var(--blue-soft); color: var(--blue); border-color: var(--blue); }
+.prow.open .gtick.k { background-color: var(--green-soft); color: var(--green); border-color: var(--green); }
+.prow.open .gtick { transition: none; }
+/* the legend copies, which must not look clickable */
+.gtick.static { cursor: default; display: inline-grid; vertical-align: baseline; }
+
+.corr {
+  grid-column: 2; font-family: var(--serif); font-size: 1.16rem;
+  line-height: 1.85; color: var(--ink); margin-bottom: 1.45rem;
+}
+/* A correction is a LINE — blue, wavy, never filled. Fill vs line keeps the two readable
+   even when a saved word sits inside a corrected phrase. */
+.corr .fix {
+  text-decoration: underline solid var(--fix-line);
+  text-decoration-thickness: 1px; text-underline-offset: 3px;
+  cursor: help;
+}
+.corr .fix:hover { background-color: var(--blue-soft); border-radius: 2px; }
+
+/* --- the folded detail --- */
+.notes {
+  grid-column: 2; margin: -0.7rem 0 1.6rem; display: none;
+  flex-direction: column; gap: 0.55rem;
+  border-left: 2px solid var(--line); padding: 0.1rem 0 0.1rem 0.85rem;
+}
+.prow.open .notes { display: flex; }
+.nrow { display: flex; flex-wrap: wrap; gap: 0 0.4rem; align-items: baseline; font-size: 0.8rem; line-height: 1.5; }
+.ntag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 0.05rem 0.3rem; border-radius: 4px;
+  background: var(--blue-soft); color: var(--blue); border: 1px solid var(--blue-line);
+}
+.nrow.k .ntag { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+.nwas { font-family: var(--serif); color: var(--red); text-decoration: line-through; text-decoration-thickness: 1px; }
+.narr { color: var(--ink-3); }
+.nnow { font-family: var(--serif); font-weight: 600; }
+.nrow.k .nnow { font-weight: 400; font-style: italic; }
+.nwhy { flex-basis: 100%; color: var(--ink-2); }
+
+/* --- language notes --- */
+.langnotes {
+  max-width: 42rem; margin: 2rem 0 0;
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 0.9rem 1.1rem; font-family: var(--sans);
+}
+.langnotes > summary { cursor: pointer; font-size: 0.88rem; font-weight: 600; color: var(--ink); }
+.langnotes-body { font-size: 0.88rem; line-height: 1.65; color: var(--ink-2); }
+.langnotes-body p { margin: 0.8rem 0 0; }
+.langnotes-body code {
+  font-family: var(--mono); font-size: 0.82em; background: var(--card);
+  border: 1px solid var(--line); border-radius: 4px; padding: 0 0.25rem; color: var(--ink);
+}
+.langnotes-body strong { color: var(--ink); }
+
+@media (max-width: 40rem) {
+  .prow { grid-template-columns: 1.5rem minmax(0, 1fr); gap: 0 0.6rem; }
+  .corr { font-size: 1.08rem; }
+}
+
+/* Turn markers and stage directions. Present, because she heard them — but not prose, and
+   not clickable: "SK" resolves to streptokinase in a Chinese-English dictionary. */
+.who {
+  font-family: var(--sans); font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.02em; color: var(--ink-3); cursor: default;
+}
+.stage { color: var(--ink-3); font-style: italic; cursor: default; }

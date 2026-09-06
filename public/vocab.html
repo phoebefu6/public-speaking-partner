@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Words · Speech Partner</title>
+<link rel="stylesheet" href="/app.css?v=4">
+</head>
+<body>
+<main class="wrap">
+  <h1>Your words</h1>
+  <p class="sub">Every word you highlighted, with the sentence you met it in.</p>
+
+  <div class="tiles" id="tiles"></div>
+
+  <h2>Study days</h2>
+  <div class="heat" id="heat"></div>
+
+  <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin:2rem 0 1rem">
+    <input class="field" id="q" placeholder="Filter words…" style="max-width:16rem" autocomplete="off">
+    <span id="statusFilters" style="display:flex; gap:.3rem"></span>
+    <span style="flex:1"></span>
+    <button class="btn ghost" id="flashBtn">Flashcards</button>
+    <button class="btn" id="testBtn">Test me</button>
+  </div>
+
+  <div id="study" style="display:none; margin-bottom:2rem"></div>
+  <div class="wordlist" id="list"></div>
+</main>
+<script type="module" src="/vocab.js?v=4"></script>
+</body>
+</html>

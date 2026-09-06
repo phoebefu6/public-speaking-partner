@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library · Speech Partner</title>
+<link rel="stylesheet" href="/app.css?v=4">
+</head>
+<body>
+<main class="wrap">
+  <h1>Your library</h1>
+  <p class="sub">Paste a TED or YouTube link, or drop in a transcript. Everything lands in <code>~/speech-vault</code>.</p>
+
+  <form class="ingest" id="ingest">
+    <input class="field" id="url" placeholder="https://www.ted.com/talks/…  or a YouTube link" autocomplete="off">
+    <button class="btn" id="add">Add</button>
+    <button class="btn ghost" type="button" id="pasteToggle">Paste text</button>
+  </form>
+
+  <form class="ingest" id="pasteForm" style="display:none; flex-direction:column; align-items:stretch; gap:.6rem">
+    <input class="field" id="pTitle" placeholder="Title">
+    <input class="field" id="pSpeaker" placeholder="Speaker (optional)">
+    <textarea class="field" id="pText" placeholder="Paste the transcript here — blank lines separate paragraphs."></textarea>
+    <div style="display:flex; gap:.6rem">
+      <button class="btn" id="pAdd" type="submit">Add transcript</button>
+      <button class="btn ghost" type="button" id="pCancel">Cancel</button>
+    </div>
+  </form>
+
+  <div class="layout">
+    <aside class="facets" id="facets"></aside>
+    <section>
+      <input class="field" id="q" placeholder="Search every transcript…" style="margin-bottom:1rem" autocomplete="off">
+      <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.75rem">
+        <div id="count" class="sub" style="margin:0"></div>
+        <span style="flex:1"></span>
+        <span id="notionState" class="sub" style="margin:0"></span>
+        <button class="btn ghost sm" id="notionSync">Sync to Notion</button>
+      </div>
+      <div class="cards" id="cards"></div>
+      <div style="display:flex; justify-content:center; margin-top:1.5rem">
+        <button class="btn ghost" id="more" style="display:none">Load more</button>
+      </div>
+    </section>
+  </div>
+</main>
+<script type="module" src="/catalog.js?v=4"></script>
+</body>
+</html>
