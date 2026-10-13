@@ -138,6 +138,7 @@ function collectTalks() {
         words: t.words || 0,
         difficulty: t.difficulty || '',
         topics: Array.isArray(t.topics) ? t.topics : [],
+        status: t.status || '',
         paragraphs: parsed.paragraphs,
         reviewed: parsed.reviewed,
         corrections: parsed.corrections || [],

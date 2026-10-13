@@ -122,6 +122,32 @@
   .wikilink { color: var(--accent); }
   .box { color: var(--muted); }
 
+  .notice {
+    background: var(--accent-soft); border: 1px solid var(--line); border-radius: 11px;
+    padding: 11px 14px; font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5;
+  }
+  .notice strong { color: var(--ink); }
+  .layout { display: grid; grid-template-columns: 182px 1fr; gap: 24px; align-items: start; }
+  .facets { position: sticky; top: 64px; display: flex; flex-direction: column; gap: 1px; }
+  .facet-head {
+    font-size: 10.5px; font-weight: 800; letter-spacing: .09em; color: var(--muted);
+    margin: 16px 0 5px;
+  }
+  .facet-head:first-child { margin-top: 0; }
+  .facet {
+    display: flex; justify-content: space-between; gap: 8px; width: 100%; text-align: left;
+    background: none; color: var(--ink); border: 0; border-radius: 7px; padding: 5px 8px;
+    font-size: 13px; font-weight: 400;
+  }
+  .facet:hover { background: var(--accent-soft); }
+  .facet .n { color: var(--muted); font-size: 12px; }
+  .facet.clear { background: var(--ink); color: var(--bg); font-weight: 500; }
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; }
+    .facets { position: static; flex-direction: row; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .facet-head { width: 100%; margin: 6px 0 0; }
+    .facet { width: auto; border: 1px solid var(--line); }
+  }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
   .w { background: var(--panel); border: 1px solid var(--line); border-radius: 11px; padding: 13px 15px; cursor: pointer; }
   .w .hw { font-family: var(--serif); font-size: 18px; font-weight: 600; }
@@ -349,24 +375,135 @@ function talkView(talk) {
 
 /* ------------------------------------------------ views */
 
+function talkCard(t) {
+  const card = el('div', { className: 'card' });
+  card.append(el('a', { className: 't', href: `#/talk/${t.id}`, textContent: t.title }));
+  const meta = el('div', { className: 'meta' });
+  for (const b of [t.speaker, t.source, t.duration ? `${Math.round(t.duration / 60)} min` : '',
+                   t.words ? `${t.words.toLocaleString()} words` : ''].filter(Boolean)) {
+    meta.append(el('span', { textContent: b }));
+  }
+  if (t.difficulty) meta.append(el('span', { className: 'chip', textContent: t.difficulty }));
+  const fixes = (t.corrections || []).length;
+  meta.append(el('span', { className: 'chip plain', textContent: fixes ? `${fixes} corrections` : 'unreviewed' }));
+  card.append(meta);
+  if (t.topics?.length) {
+    const tags = el('div', { className: 'meta' });
+    for (const topic of t.topics.slice(0, 6)) tags.append(el('span', { className: 'chip plain', textContent: topic }));
+    card.append(tags);
+  }
+  return card;
+}
+
 function talksView() {
   const wrap = el('div');
+
+  // Adding a talk needs the server: it fetches the page or the captions and writes a note
+  // into the vault. Saying so beats a paste box that silently cannot work.
+  wrap.append(el('div', { className: 'notice' },
+    el('strong', { textContent: 'Read-only copy. ' }),
+    'To add a talk, paste the link into the app on your Mac — ',
+    el('code', { textContent: 'npm start' }),
+    ' at ',
+    el('code', { textContent: 'localhost:4321' }),
+    ' — then rebuild this page with ',
+    el('code', { textContent: 'npm run build-site' }),
+    '.'));
+
   wrap.append(el('h2', { className: 'view', textContent: 'Talks' }));
-  wrap.append(el('p', { className: 'sub', textContent: `${DATA.talks.length} talks · a read-only snapshot of the vault` }));
-  for (const t of DATA.talks) {
-    const card = el('div', { className: 'card' });
-    card.append(el('a', { className: 't', href: `#/talk/${t.id}`, textContent: t.title }));
-    const meta = el('div', { className: 'meta' });
-    for (const b of [t.speaker, t.source, t.duration ? `${Math.round(t.duration / 60)} min` : '', t.words ? `${t.words.toLocaleString()} words` : ''].filter(Boolean)) {
-      meta.append(el('span', { textContent: b }));
+  const sub = el('p', { className: 'sub' });
+  wrap.append(sub);
+
+  const search = el('input', { type: 'search', placeholder: 'Search every transcript…' });
+  wrap.append(el('div', { className: 'toolbar' }, search));
+
+  const layout = el('div', { className: 'layout' });
+  const side = el('aside', { className: 'facets' });
+  const list = el('div');
+  layout.append(side, list);
+  wrap.append(layout);
+
+  // facet key -> selected value, or null for "everything"
+  const picked = { source: null, difficulty: null, status: null, topic: null };
+
+  const matches = (t, q) => {
+    if (!q) return true;
+    const hay = [t.title, t.speaker, t.source, (t.topics || []).join(' ')].join(' ').toLowerCase();
+    if (hay.includes(q)) return true;
+    const text = (t.reviewed || t.paragraphs || []).join(' ').toLowerCase();
+    return text.includes(q);
+  };
+
+  const visible = () => {
+    const q = search.value.trim().toLowerCase();
+    return DATA.talks.filter((t) =>
+      (!picked.source || t.source === picked.source) &&
+      (!picked.difficulty || t.difficulty === picked.difficulty) &&
+      (!picked.status || t.status === picked.status) &&
+      (!picked.topic || (t.topics || []).includes(picked.topic)) &&
+      matches(t, q));
+  };
+
+  /** Counts for one facet, computed against every other facet already applied, so a
+   *  count never promises results that the current filters would exclude. */
+  const countsFor = (key, valuesOf) => {
+    const q = search.value.trim().toLowerCase();
+    const others = DATA.talks.filter((t) =>
+      (key === 'source' || !picked.source || t.source === picked.source) &&
+      (key === 'difficulty' || !picked.difficulty || t.difficulty === picked.difficulty) &&
+      (key === 'status' || !picked.status || t.status === picked.status) &&
+      (key === 'topic' || !picked.topic || (t.topics || []).includes(picked.topic)) &&
+      matches(t, q));
+    const counts = new Map();
+    for (const t of others) for (const v of valuesOf(t)) if (v) counts.set(v, (counts.get(v) || 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])));
+  };
+
+  const drawFacets = () => {
+    side.replaceChildren();
+    const groups = [
+      ['Source', 'source', (t) => [t.source]],
+      ['Level', 'difficulty', (t) => [t.difficulty]],
+      ['Status', 'status', (t) => [t.status]],
+      ['Topic', 'topic', (t) => t.topics || []],
+    ];
+    for (const [label, key, valuesOf] of groups) {
+      const rows = countsFor(key, valuesOf);
+      if (!rows.length) continue;
+      side.append(el('div', { className: 'facet-head', textContent: label.toUpperCase() }));
+      if (picked[key]) {
+        const clear = el('button', { className: 'facet clear', textContent: `× ${picked[key]}` });
+        clear.onclick = () => { picked[key] = null; draw(); };
+        side.append(clear);
+        continue;
+      }
+      for (const [value, n] of rows) {
+        const row = el('button', { className: 'facet' },
+          el('span', { textContent: value }),
+          el('span', { className: 'n', textContent: String(n) }));
+        row.onclick = () => { picked[key] = value; draw(); };
+        side.append(row);
+      }
     }
-    if (t.difficulty) meta.append(el('span', { className: 'chip', textContent: t.difficulty }));
-    const fixes = (t.corrections || []).length;
-    if (fixes) meta.append(el('span', { className: 'chip plain', textContent: `${fixes} corrections` }));
-    else meta.append(el('span', { className: 'chip plain', textContent: 'unreviewed' }));
-    card.append(meta);
-    wrap.append(card);
-  }
+  };
+
+  const draw = () => {
+    const rows = visible();
+    const q = search.value.trim();
+    sub.textContent = rows.length === DATA.talks.length
+      ? `${DATA.talks.length} talks · a read-only snapshot of the vault`
+      : `${rows.length} of ${DATA.talks.length} talks${q ? ` matching “${q}”` : ''}`;
+    drawFacets();
+    list.replaceChildren();
+    if (!rows.length) {
+      list.append(el('p', { className: 'empty', textContent: 'Nothing matches those filters.' }));
+      return;
+    }
+    for (const t of rows) list.append(talkCard(t));
+  };
+
+  search.addEventListener('input', draw);
+  draw();
   return wrap;
 }
 
