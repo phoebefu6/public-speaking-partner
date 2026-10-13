@@ -75,6 +75,22 @@ ANTHROPIC_API_KEY=
 Nothing here requires any of it: with no keys at all, ingesting, reading, word cards, and review
 all work offline.
 
+## A password-locked copy you can read anywhere
+
+`npm run build-site` packs the whole vault into one JSON payload, encrypts it with AES-256-GCM
+under a key derived from a passphrase (PBKDF2-SHA256, 600,000 rounds), and writes `docs/` — a
+single page plus the ciphertext. Published through GitHub Pages it becomes a phone-readable copy
+of the library: talks with both layers and the correction marks, word cards, phrases, craft notes.
+
+**A private repo does not give you a private site.** Pages serves publicly whatever it builds, so
+nothing readable is written: the build takes real sentences out of the payload and aborts, deleting
+its own output, if any of them can be found in the files it produced. What GitHub stores is
+ciphertext, and the passphrase — kept in a gitignored `.site-passphrase`, or passed as
+`SITE_PASSPHRASE` — is what stands between a downloader and the text. Choose a strong one.
+
+The site is read-only by design. Ingesting, word lookups, the Polish pass and the Notion sync all
+need the server and stay on your machine.
+
 ## Where things live
 
 **The vault is the source of truth.** It is a plain Obsidian vault — Markdown with YAML

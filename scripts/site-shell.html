@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Speech Partner</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #faf8f5;
+    --panel: #ffffff;
+    --ink: #1b1a18;
+    --muted: #6d6963;
+    --line: #e4ded4;
+    --accent: #8a5a2b;
+    --accent-soft: #f5ece0;
+    --good: #2f6d4f;
+    --warn: #9a6b1f;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16151a;
+      --panel: #1e1d23;
+      --ink: #ece9e3;
+      --muted: #9c968c;
+      --line: #322f38;
+      --accent: #d9a05b;
+      --accent-soft: #2a2420;
+      --good: #6cc096;
+      --warn: #d7ab5c;
+    }
+  }
+  * { box-sizing: border-box; }
+  /* A CSS display rule beats the hidden attribute's UA default, and #lock sets display:grid --
+     without this the lock screen stays painted on top of the unlocked library. */
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.55; }
+  a { color: var(--accent); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; background: var(--accent-soft); padding: .1em .35em; border-radius: 4px; }
+
+  /* ---------------- lock screen ---------------- */
+  #lock { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
+  #lock .card { width: min(420px, 100%); text-align: center; }
+  #lock h1 { font-family: var(--serif); font-size: 30px; font-weight: 600; margin: 0 0 6px; letter-spacing: -.01em; }
+  #lock p { color: var(--muted); font-size: 14px; margin: 0 0 22px; }
+  .row { display: flex; gap: 8px; }
+  input[type=password], input[type=search] {
+    flex: 1; padding: 11px 13px; font-size: 15px; font-family: inherit; color: var(--ink);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 9px;
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  button {
+    padding: 11px 17px; font-size: 15px; font-family: inherit; font-weight: 500; cursor: pointer;
+    background: var(--ink); color: var(--bg); border: 0; border-radius: 9px;
+  }
+  button:disabled { opacity: .55; cursor: default; }
+  #msg { min-height: 20px; margin-top: 14px; font-size: 13.5px; color: var(--muted); }
+  #msg.bad { color: #c0392b; }
+  @media (prefers-color-scheme: dark) { #msg.bad { color: #f08a7a; } }
+
+  /* ---------------- chrome ---------------- */
+  header {
+    position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+  }
+  .bar { max-width: 940px; margin: 0 auto; padding: 11px 18px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .brand { font-family: var(--serif); font-weight: 600; font-size: 17px; }
+  nav { display: flex; gap: 2px; margin-left: auto; flex-wrap: wrap; }
+  nav a {
+    padding: 6px 12px; border-radius: 7px; font-size: 14px; text-decoration: none;
+    color: var(--muted); font-weight: 500;
+  }
+  nav a.on { background: var(--ink); color: var(--bg); }
+  main { max-width: 940px; margin: 0 auto; padding: 26px 18px 80px; }
+  h2.view { font-family: var(--serif); font-size: 26px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 22px; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 11px;
+  }
+  .card a.t { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--ink); text-decoration: none; display: block; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-top: 5px; display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
+  .chip { background: var(--accent-soft); color: var(--accent); border-radius: 20px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; }
+  .chip.plain { background: transparent; border: 1px solid var(--line); color: var(--muted); font-weight: 500; }
+
+  /* ---------------- transcript ---------------- */
+  .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 18px; }
+  .toolbar button { background: var(--panel); color: var(--ink); border: 1px solid var(--line); padding: 7px 13px; font-size: 13.5px; }
+  .toolbar button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .para { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 9px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+  .para.split { grid-template-columns: 1fr 1fr; }
+  .para p { margin: 0; font-family: var(--serif); font-size: 17px; line-height: 1.68; }
+  .para .verbatim { color: var(--muted); }
+  .para.split .verbatim { font-size: 15.5px; }
+  .who { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--accent); display: block; margin-bottom: 2px; }
+  .stage { color: var(--muted); font-style: italic; }
+  mark.fix { background: color-mix(in srgb, var(--good) 20%, transparent); border-radius: 3px; padding: 0 2px; }
+  .fixes { margin-top: 7px; display: flex; flex-direction: column; gap: 5px; }
+  .fix-note { font-family: var(--sans); font-size: 12.5px; color: var(--muted); display: flex; gap: 7px; align-items: baseline; }
+  .tag { font-size: 10px; font-weight: 800; border-radius: 4px; padding: 1px 5px; flex: none; }
+  .tag.g { background: color-mix(in srgb, var(--good) 22%, transparent); color: var(--good); }
+  .tag.t { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent); }
+  .tag.q { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+  .tag.k { background: var(--ink); color: var(--bg); }
+  .was { text-decoration: line-through; opacity: .7; }
+
+  .prose h3 { font-family: var(--serif); font-size: 19px; margin: 26px 0 6px; }
+  .prose h4, .prose h5 { font-family: var(--serif); font-size: 16px; margin: 20px 0 5px; }
+  .prose p { margin: 0 0 11px; }
+  .prose ul { margin: 0 0 12px; padding-left: 20px; }
+  .prose li { margin-bottom: 4px; }
+  .prose li.sub { list-style: none; margin-left: -8px; color: var(--muted); font-size: 13.5px; }
+  .prose blockquote {
+    margin: 0 0 14px; padding: 10px 0 10px 16px; border-left: 3px solid var(--accent);
+    font-family: var(--serif); font-size: 18px;
+  }
+  .prose sup { color: var(--muted); font-size: 11px; }
+  .wikilink { color: var(--accent); }
+  .box { color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .w { background: var(--panel); border: 1px solid var(--line); border-radius: 11px; padding: 13px 15px; cursor: pointer; }
+  .w .hw { font-family: var(--serif); font-size: 18px; font-weight: 600; }
+  .w .ipa { color: var(--muted); font-size: 12.5px; }
+  .w .zh { font-size: 14px; margin-top: 3px; }
+  dialog {
+    border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink);
+    max-width: 620px; width: calc(100% - 32px); padding: 22px 24px;
+  }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  .back { display: inline-block; margin-bottom: 14px; font-size: 14px; text-decoration: none; }
+  .empty { color: var(--muted); font-size: 14px; }
+  @media (max-width: 700px) { .para.split { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <div class="card" style="background:none;border:0;padding:0">
+    <h1>Speech Partner</h1>
+    <p>This library is encrypted. Enter the passphrase to read it.</p>
+    <form class="row" id="unlock-form">
+      <input type="password" id="pass" placeholder="Passphrase" autocomplete="current-password" autofocus>
+      <button type="submit" id="go">Unlock</button>
+    </form>
+    <div id="msg"></div>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header><div class="bar">
+    <span class="brand">Speech·Partner</span>
+    <nav id="nav"></nav>
+  </div></header>
+  <main id="main"></main>
+</div>
+
+<dialog id="modal"><div id="modal-body" class="prose"></div></dialog>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, props = {}, ...kids) => {
+  const n = Object.assign(document.createElement(tag), props);
+  for (const k of kids.flat()) if (k != null) n.append(k);
+  return n;
+};
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+let DATA = null;
+
+/* ------------------------------------------------ unlock */
+
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+async function decrypt(sealed, passphrase) {
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: b64(sealed.kdf.salt), iterations: sealed.kdf.iterations, hash: sealed.kdf.hash },
+    base,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt'],
+  );
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(sealed.iv) }, key, b64(sealed.data));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+$('#unlock-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = $('#msg'), go = $('#go');
+  const passphrase = $('#pass').value;
+  if (!passphrase) return;
+  go.disabled = true;
+  msg.className = '';
+  msg.textContent = 'Decrypting…';
+  try {
+    const sealed = await (await fetch('payload.json', { cache: 'no-store' })).json();
+    DATA = await decrypt(sealed, passphrase);
+    try { sessionStorage.setItem('sp-pass', passphrase); } catch {}
+    $('#lock').hidden = true;
+    $('#app').hidden = false;
+    route();
+  } catch (err) {
+    msg.className = 'bad';
+    msg.textContent = 'That passphrase does not open this library.';
+    $('#pass').select();
+  } finally {
+    go.disabled = false;
+  }
+});
+
+// Survive a reload within the same tab without retyping.
+(async () => {
+  let saved = null;
+  try { saved = sessionStorage.getItem('sp-pass'); } catch {}
+  if (!saved) return;
+  try {
+    const sealed = await (await fetch('payload.json', { cache: 'no-store' })).json();
+    DATA = await decrypt(sealed, saved);
+    $('#lock').hidden = true;
+    $('#app').hidden = false;
+    route();
+  } catch { try { sessionStorage.removeItem('sp-pass'); } catch {} }
+})();
+
+/* ------------------------------------------------ transcript rendering */
+
+const LABEL = /^([A-Z][A-Za-z.'’-]*(?:\s+[A-Z][A-Za-z.'’-]*){0,3}):\s*/;
+const STAGE = /\((?:Applause|Laughter|Music|Video|Audio|Cheers|Singing)[^)]*\)/gi;
+
+function renderParagraph(text, who) {
+  const frag = document.createDocumentFragment();
+  let body = String(text ?? '');
+  const m = LABEL.exec(body);
+  if (m && who) {
+    frag.append(el('span', { className: 'who', title: who, textContent: who }));
+    body = body.slice(m[0].length);
+  }
+  const p = el('p');
+  p.innerHTML = esc(body).replace(STAGE, (s) => `<span class="stage">${s}</span>`);
+  frag.append(p);
+  return frag;
+}
+
+/** Show each correction inside the reviewed paragraph, so the edit stays visible. */
+function markFixes(html, fixes) {
+  let out = html;
+  for (const f of fixes) {
+    if (!f.now || f.type === 'k') continue;
+    const needle = esc(f.now);
+    if (needle && out.includes(needle)) out = out.replace(needle, `<mark class="fix">${needle}</mark>`);
+  }
+  return out;
+}
+
+function talkView(talk) {
+  const wrap = el('div');
+  wrap.append(el('a', { className: 'back', href: '#/talks', textContent: '← All talks' }));
+  wrap.append(el('h2', { className: 'view', textContent: talk.title }));
+
+  const bits = [talk.speaker, talk.source, talk.duration ? `${Math.round(talk.duration / 60)} min` : '',
+                talk.words ? `${talk.words.toLocaleString()} words` : '', talk.difficulty].filter(Boolean);
+  wrap.append(el('p', { className: 'sub', textContent: bits.join(' · ') }));
+
+  const hasReviewed = Array.isArray(talk.reviewed) && talk.reviewed.length === talk.paragraphs.length;
+  let mode = hasReviewed ? 'reviewed' : 'verbatim';
+
+  const bar = el('div', { className: 'toolbar' });
+  const body = el('div');
+
+  const draw = () => {
+    body.replaceChildren();
+    const byPara = {};
+    for (const c of talk.corrections || []) (byPara[c.p] ??= []).push(c);
+
+    talk.paragraphs.forEach((verb, i) => {
+      const rev = hasReviewed ? talk.reviewed[i] : verb;
+      const fixes = byPara[i] || [];
+      const row = el('div', { className: `para${mode === 'both' ? ' split' : ''}` });
+
+      if (mode === 'both' || mode === 'verbatim') {
+        const col = el('div', { className: mode === 'both' ? 'verbatim' : '' });
+        col.append(renderParagraph(verb, talk.speakers?.[i]));
+        row.append(col);
+      }
+      if (mode === 'both' || mode === 'reviewed') {
+        const col = el('div');
+        col.append(renderParagraph(rev, talk.speakers?.[i]));
+        const p = col.querySelector('p');
+        if (p && fixes.length) p.innerHTML = markFixes(p.innerHTML, fixes);
+        if (fixes.length) {
+          const notes = el('div', { className: 'fixes' });
+          for (const f of fixes) {
+            notes.append(el('div', { className: 'fix-note' },
+              el('span', { className: `tag ${f.type}`, textContent: f.type.toUpperCase() }),
+              el('span', {}, f.type === 'k'
+                ? `Craft — left exactly as spoken. ${f.why || ''}`
+                // A judgment call often quotes the line unchanged; showing it struck through
+                // and retyped identically reads as an edit that did not happen.
+                : f.was === f.now
+                  ? `Flagged, not changed. ${f.why || ''}`
+                  : [el('span', { className: 'was', textContent: f.was || '' }), ' → ', el('strong', { textContent: f.now || '' }), ` — ${f.why || ''}`]),
+            ));
+          }
+          col.append(notes);
+        }
+        row.append(col);
+      }
+      body.append(row);
+    });
+  };
+
+  const modes = hasReviewed
+    ? [['reviewed', 'Corrected'], ['verbatim', 'Verbatim'], ['both', 'Side by side']]
+    : [['verbatim', 'Verbatim']];
+  for (const [key, label] of modes) {
+    const b = el('button', { textContent: label, className: key === mode ? 'on' : '' });
+    b.onclick = () => {
+      mode = key;
+      [...bar.querySelectorAll('button')].forEach((x) => x.classList.toggle('on', x === b));
+      draw();
+    };
+    bar.append(b);
+  }
+  if (!hasReviewed) bar.append(el('span', { className: 'meta', textContent: 'No reviewed layer yet' }));
+  if (talk.url) bar.append(el('a', { href: talk.url, target: '_blank', rel: 'noopener', className: 'meta', textContent: 'Watch ↗' }));
+
+  draw();
+  wrap.append(bar, body);
+
+  if (talk.languageNotes) {
+    wrap.append(el('h3', { style: 'font-family:var(--serif);font-size:21px;margin:34px 0 8px', textContent: 'Language notes' }));
+    const box = el('div', { className: 'card prose' });
+    box.innerHTML = talk.languageNotes;
+    wrap.append(box);
+  }
+  if (talk.craft && talk.craft.trim()) {
+    const box = el('div', { className: 'card prose', style: 'margin-top:12px' });
+    box.innerHTML = talk.craft;
+    wrap.append(box);
+  }
+  return wrap;
+}
+
+/* ------------------------------------------------ views */
+
+function talksView() {
+  const wrap = el('div');
+  wrap.append(el('h2', { className: 'view', textContent: 'Talks' }));
+  wrap.append(el('p', { className: 'sub', textContent: `${DATA.talks.length} talks · a read-only snapshot of the vault` }));
+  for (const t of DATA.talks) {
+    const card = el('div', { className: 'card' });
+    card.append(el('a', { className: 't', href: `#/talk/${t.id}`, textContent: t.title }));
+    const meta = el('div', { className: 'meta' });
+    for (const b of [t.speaker, t.source, t.duration ? `${Math.round(t.duration / 60)} min` : '', t.words ? `${t.words.toLocaleString()} words` : ''].filter(Boolean)) {
+      meta.append(el('span', { textContent: b }));
+    }
+    if (t.difficulty) meta.append(el('span', { className: 'chip', textContent: t.difficulty }));
+    const fixes = (t.corrections || []).length;
+    if (fixes) meta.append(el('span', { className: 'chip plain', textContent: `${fixes} corrections` }));
+    else meta.append(el('span', { className: 'chip plain', textContent: 'unreviewed' }));
+    card.append(meta);
+    wrap.append(card);
+  }
+  return wrap;
+}
+
+function wordsView() {
+  const wrap = el('div');
+  wrap.append(el('h2', { className: 'view', textContent: 'Words' }));
+  wrap.append(el('p', { className: 'sub', textContent: `${DATA.words.length} words, each kept with the sentence it arrived in` }));
+
+  const search = el('input', { type: 'search', placeholder: 'Filter words…' });
+  wrap.append(el('div', { className: 'toolbar' }, search));
+  const grid = el('div', { className: 'grid' });
+  wrap.append(grid);
+
+  const draw = (q = '') => {
+    const needle = q.trim().toLowerCase();
+    grid.replaceChildren();
+    const rows = DATA.words.filter((w) =>
+      !needle || w.word.toLowerCase().includes(needle) || String(w.zh).toLowerCase().includes(needle));
+    if (!rows.length) return grid.append(el('p', { className: 'empty', textContent: 'Nothing matches.' }));
+    for (const w of rows) {
+      const card = el('div', { className: 'w' });
+      card.append(el('div', { className: 'hw' }, w.word));
+      if (w.ipa) card.append(el('div', { className: 'ipa', textContent: w.ipa }));
+      if (w.zh) card.append(el('div', { className: 'zh', textContent: w.zh }));
+      if (w.band) card.append(el('div', { className: 'meta' }, el('span', { className: 'chip', textContent: w.band })));
+      card.onclick = () => {
+        const b = $('#modal-body');
+        b.replaceChildren();
+        b.append(el('h3', { style: 'margin-top:0', textContent: w.word }));
+        if (w.ipa) b.append(el('p', { className: 'sub', textContent: w.ipa }));
+        const inner = el('div');
+        inner.innerHTML = w.body;
+        b.append(inner);
+        if (w.talkTitle) b.append(el('p', { className: 'sub', textContent: `From “${w.talkTitle}”` }));
+        $('#modal').showModal();
+      };
+      grid.append(card);
+    }
+  };
+  search.addEventListener('input', () => draw(search.value));
+  draw();
+  return wrap;
+}
+
+function phrasesView() {
+  const wrap = el('div');
+  wrap.append(el('h2', { className: 'view', textContent: 'Phrases' }));
+  wrap.append(el('p', { className: 'sub', textContent: `${DATA.phrases.length} lines worth reciting, filed by what the sentence does` }));
+
+  const groups = {};
+  for (const p of DATA.phrases) (groups[p.category] ??= []).push(p);
+
+  for (const [cat, rows] of Object.entries(groups)) {
+    wrap.append(el('h3', { style: 'font-family:var(--serif);font-size:20px;margin:28px 0 4px', textContent: cat }));
+    wrap.append(el('p', { className: 'sub', textContent: rows[0].categoryLabel }));
+    for (const p of rows) {
+      const card = el('div', { className: 'card' });
+      card.append(el('blockquote', { style: 'margin:0;padding:0 0 0 14px;border-left:3px solid var(--accent);font-family:var(--serif);font-size:18px', textContent: p.text }));
+      const meta = el('div', { className: 'meta' });
+      for (const b of [p.speaker, p.talkTitle].filter(Boolean)) meta.append(el('span', { textContent: b }));
+      card.append(meta);
+      const why = el('div', { className: 'prose', style: 'margin-top:8px' });
+      why.innerHTML = p.body;
+      card.append(why);
+      wrap.append(card);
+    }
+  }
+  return wrap;
+}
+
+function notesView(key, title, blurb) {
+  const wrap = el('div');
+  wrap.append(el('h2', { className: 'view', textContent: title }));
+  wrap.append(el('p', { className: 'sub', textContent: blurb }));
+  const rows = DATA[key] || [];
+  if (!rows.length) wrap.append(el('p', { className: 'empty', textContent: 'Nothing here yet.' }));
+  for (const n of rows) {
+    const card = el('div', { className: 'card prose' });
+    card.append(el('h3', { style: 'margin-top:0', textContent: n.title }));
+    const inner = el('div');
+    inner.innerHTML = n.body;
+    card.append(inner);
+    wrap.append(card);
+  }
+  return wrap;
+}
+
+/* ------------------------------------------------ routing */
+
+const TABS = [['#/talks', 'Talks'], ['#/words', 'Words'], ['#/phrases', 'Phrases'], ['#/craft', 'Craft'], ['#/coaching', 'Coaching']];
+
+function route() {
+  if (!DATA) return;
+  const hash = location.hash || '#/talks';
+
+  const nav = $('#nav');
+  nav.replaceChildren();
+  for (const [href, label] of TABS) {
+    nav.append(el('a', { href, textContent: label, className: hash.startsWith(href) ? 'on' : '' }));
+  }
+
+  let view;
+  const talkMatch = /^#\/talk\/(.+)$/.exec(hash);
+  if (talkMatch) {
+    const talk = DATA.talks.find((t) => t.id === decodeURIComponent(talkMatch[1]));
+    view = talk ? talkView(talk) : el('p', { className: 'empty', textContent: 'No such talk.' });
+  } else if (hash.startsWith('#/words')) view = wordsView();
+  else if (hash.startsWith('#/phrases')) view = phrasesView();
+  else if (hash.startsWith('#/craft')) view = notesView('craft', 'Craft', 'One note per talk: the opening move, the spine, the devices, the close.');
+  else if (hash.startsWith('#/coaching')) view = notesView('coaching', 'Coaching', 'Recurring patterns across the whole library.');
+  else view = talksView();
+
+  $('#main').replaceChildren(view);
+  window.scrollTo(0, 0);
+}
+
+addEventListener('hashchange', route);
+$('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') $('#modal').close(); });
+</script>
+</body>
+</html>
