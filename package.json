@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "English learning partner — transcripts in, vocabulary into Notion, review out.",
+  "description": "Study talks as craft \u2014 dual-layer transcripts, sourced word cards, and a Markdown vault as the source of truth.",
   "engines": {
     "node": ">=22"
   },

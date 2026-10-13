@@ -11,12 +11,26 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const ENV = path.join(HERE, '.env');
-const DB_ID = '83525ffddae143a7b3324e360728953d';
+const readEnv = (key) => {
+  if (!fs.existsSync(ENV)) return '';
+  const m = fs.readFileSync(ENV, 'utf8').match(new RegExp(`^${key}=(.*)$`, 'm'));
+  return m ? m[1].trim() : '';
+};
+
+// Your own database, not one baked into this repo: pass it as the second
+// argument, set NOTION_DATABASE_ID, or leave the one already in .env in place.
+const DB_ID = (process.argv[3] || process.env.NOTION_DATABASE_ID || readEnv('NOTION_DATABASE_ID')).trim();
 
 const token = (process.argv[2] || '').trim();
 if (!token) {
-  console.error('usage: node scripts/notion-setup.js <NOTION_TOKEN>');
+  console.error('usage: node scripts/notion-setup.js <NOTION_TOKEN> [DATABASE_ID]');
   console.error('Get one at https://www.notion.so/my-integrations → New integration');
+  process.exit(1);
+}
+
+if (!DB_ID) {
+  console.error('No database id. Pass it as the second argument, or set NOTION_DATABASE_ID in .env.');
+  console.error('It is the 32-character id in your Speeches database URL.');
   process.exit(1);
 }
 

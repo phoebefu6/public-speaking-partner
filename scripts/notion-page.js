@@ -103,7 +103,7 @@ if (/^\d{4}-\d{2}-\d{2}$/.test(String(talk.date || ''))) {
 }
 
 console.log(JSON.stringify({
-  dataSourceId: 'f89753bf-7e6f-419c-af03-aa37272abb93',
+  dataSourceId: process.env.NOTION_DATA_SOURCE_ID || '',
   properties,
   content: body.join('\n'),
 }, null, 2));
