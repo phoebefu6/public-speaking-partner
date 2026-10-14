@@ -14,7 +14,8 @@
     "notion-page": "node scripts/notion-page.js",
     "notion-setup": "node scripts/notion-setup.js",
     "dashboards": "node scripts/dashboards.js",
-    "build-site": "node --env-file=.env scripts/build-site.js"
+    "build-site": "node --env-file=.env scripts/build-site.js",
+    "publish": "node --env-file=.env scripts/publish.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0"
