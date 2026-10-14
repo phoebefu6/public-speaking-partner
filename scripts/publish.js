@@ -74,7 +74,9 @@ if (!nonDocs.length) {
   const strip = (s) => (s ? s.replace(/"generated":"[^"]*",?/, '') : s);
 
   if (before && after && strip(before) === strip(after)) {
-    git('checkout', '--', 'docs');
+    // Unstage *and* restore: `git checkout --` alone leaves the rebuilt payload staged,
+    // so the next run would see a dirty tree and commit a no-op after all.
+    git('restore', '--staged', '--worktree', 'docs');
     say('\nNothing changed — the published site is already current.');
     say('(The payload re-encrypts differently every build; its contents are identical.)');
     process.exit(0);
