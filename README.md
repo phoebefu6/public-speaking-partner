@@ -88,8 +88,14 @@ its own output, if any of them can be found in the files it produced. What GitHu
 ciphertext, and the passphrase — kept in a gitignored `.site-passphrase`, or passed as
 `SITE_PASSPHRASE` — is what stands between a downloader and the text. Choose a strong one.
 
+`npm run publish` does the whole thing: build, commit, push, then wait until Pages is actually
+serving the new bytes — a push is not a publication, and the gap is a minute or two. A rebuild that
+changes nothing is detected and skipped: the payload re-encrypts differently every time, under a
+fresh salt and IV, so the check compares the decrypted contents rather than the file.
+
 The site is read-only by design. Ingesting, word lookups, the Polish pass and the Notion sync all
-need the server and stay on your machine.
+need the server and stay on your machine, which is why the page says where to add a talk instead of
+showing a paste box that cannot work.
 
 ## Where things live
 
