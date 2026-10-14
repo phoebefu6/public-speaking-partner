@@ -7,53 +7,35 @@
 <title>Speech Partner</title>
 <style>
   :root {
-    color-scheme: light dark;
-    --bg: #fff8f0;
+    /* Light only — the page keeps its own colours whatever the device is set to. */
+    color-scheme: light;
+    --bg: #fff6f9;              /* blush cream */
     --panel: #ffffff;
-    --ink: #221a33;
-    --muted: #6f6688;
-    --line: #efe4ef;
-    --accent: #6d3bf0;          /* violet — links, brand, the speaking voice */
-    --accent-soft: #f1ebff;
-    --coral: #f0425f;
-    --amber: #ef8d12;
-    --teal: #0f9e94;
-    --sky: #2b84e8;
-    --grass: #2a9d4f;
+    --ink: #3a2f4d;             /* soft plum, gentler than black */
+    --muted: #6d6187;        /* dark enough to read on blush; #8a7fa3 measured 3.5:1 */
+    --line: #f2e6f1;
+    --accent: #a06bf0;          /* lavender */
+    --accent-soft: #f6eeff;
+    --coral: #ff85a1;           /* candy pink */
+    --amber: #ffb86b;           /* peach */
+    --teal: #5ccfc0;            /* mint */
+    --sky: #7fbcf5;             /* baby blue */
+    --grass: #86d18f;           /* pistachio */
     --good: var(--grass);
     --warn: var(--amber);
-    /* Hue-driven chips: one stable colour per topic, computed from its name. */
-    --chip-bg-s: 82%; --chip-bg-l: 94%;
-    --chip-fg-s: 68%; --chip-fg-l: 27%;   /* 27%, not 33%: at 33% the weakest hues fell to 4.0:1 */
-    --tint: 14%;                 /* how strongly a soft fill carries its hue */
+    /* Pastel fills with text dark enough to read: a cute chip is still a legible one. */
+    --chip-bg-s: 86%; --chip-bg-l: 95%;
+    --chip-fg-s: 58%; --chip-fg-l: 30%;   /* 30%: at 36% the palest hues fell to 3.8:1 */
+    --tint: 30%;                /* pastels need a heavier pour to register at all */
     --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #140f24;
-      --panel: #1e1736;
-      --ink: #f4eeff;
-      --muted: #a79dc6;
-      --line: #322a52;
-      --accent: #a98bff;
-      --accent-soft: #271e45;
-      --coral: #ff7187;
-      --amber: #ffb04d;
-      --teal: #3fd2c2;
-      --sky: #6bb2ff;
-      --grass: #58cf7f;
-      --chip-bg-s: 48%; --chip-bg-l: 24%;
-      --chip-fg-s: 85%; --chip-fg-l: 80%;
-      --tint: 26%;
-    }
   }
   * { box-sizing: border-box; }
   /* A CSS display rule beats the hidden attribute's UA default, and #lock sets display:grid --
      without this the lock screen stays painted on top of the unlocked library. */
   [hidden] { display: none !important; }
   body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.55; }
-  a { color: var(--accent); }
+  a { color: #7b3fd4; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; background: var(--accent-soft); padding: .1em .35em; border-radius: 4px; }
 
   /* ---------------- lock screen ---------------- */
@@ -73,8 +55,7 @@
   }
   button:disabled { opacity: .55; cursor: default; }
   #msg { min-height: 20px; margin-top: 14px; font-size: 13.5px; color: var(--muted); }
-  #msg.bad { color: #c0392b; }
-  @media (prefers-color-scheme: dark) { #msg.bad { color: #f08a7a; } }
+  #msg.bad { color: #e0557a; }
 
   /* ---------------- chrome ---------------- */
   header {
@@ -84,7 +65,7 @@
   .bar { max-width: 940px; margin: 0 auto; padding: 11px 18px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
   .brand {
     font-family: var(--serif); font-weight: 700; font-size: 17px;
-    background: linear-gradient(95deg, var(--coral), var(--accent) 55%, var(--teal));
+    background: linear-gradient(95deg, #e0537e, #7a3fd0 55%, #1f8f82);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   nav { display: flex; gap: 2px; margin-left: auto; flex-wrap: wrap; }
@@ -92,10 +73,10 @@
     padding: 6px 12px; border-radius: 7px; font-size: 14px; text-decoration: none;
     color: var(--muted); font-weight: 500;
   }
-  nav a:hover { color: var(--accent); }
+  nav a:hover { color: #7b3fd4; }
   nav a.on {
-    background: linear-gradient(100deg, var(--accent), var(--coral));
-    color: #fff; box-shadow: 0 2px 10px -3px var(--accent);
+    background: linear-gradient(100deg, #7a3fd0, #c93f6b);
+    color: #fff; box-shadow: 0 3px 12px -4px #c07be0;
   }
   main { max-width: 940px; margin: 0 auto; padding: 26px 18px 80px; }
   h2.view { font-family: var(--serif); font-size: 26px; font-weight: 600; margin: 0 0 4px; }
@@ -109,21 +90,21 @@
     background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
     padding: 16px 18px; margin-bottom: 11px; transition: transform .12s, box-shadow .12s;
   }
-  main .card:hover { transform: translateY(-1px); box-shadow: 0 8px 22px -14px var(--accent); }
+  main .card:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -14px #cba6f0; }
   .card a.t { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--ink); text-decoration: none; display: block; }
   .meta { color: var(--muted); font-size: 12.5px; margin-top: 5px; display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
   .chip { background: var(--accent-soft); color: var(--accent); border-radius: 20px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; }
   .chip.plain { background: transparent; border: 1px solid var(--line); color: var(--muted); font-weight: 500; }
   /* --h is set per element from the label, so a topic keeps its colour everywhere. */
-  .chip.hue, .facet.hue .dot {
+  .chip.hue, .chip[class*="lvl-"], .facet.hue .dot {
     background: hsl(var(--h) var(--chip-bg-s) var(--chip-bg-l));
     color: hsl(var(--h) var(--chip-fg-s) var(--chip-fg-l));
     border: 0;
   }
   .chip.lvl-A2 { --h: 150; } .chip.lvl-B1 { --h: 174; }
   .chip.lvl-B2 { --h: 32; }  .chip.lvl-C1 { --h: 272; } .chip.lvl-C2 { --h: 340; }
-  .chip.count { background: color-mix(in srgb, var(--grass) var(--tint), transparent); color: var(--grass); border: 0; font-weight: 600; }
-  .chip.none { background: color-mix(in srgb, var(--coral) var(--tint), transparent); color: var(--coral); border: 0; font-weight: 600; }
+  .chip.count { background: #e2f6e6; color: #236a35; border: 0; font-weight: 600; }
+  .chip.none { background: #ffe6ed; color: #b02e54; border: 0; font-weight: 600; }
 
   /* ---------------- transcript ---------------- */
   .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 18px; }
@@ -134,7 +115,7 @@
   .para p { margin: 0; font-family: var(--serif); font-size: 17px; line-height: 1.68; }
   .para .verbatim { color: var(--muted); }
   .para.split .verbatim { font-size: 15.5px; }
-  .who { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--coral); display: block; margin-bottom: 2px; }
+  .who { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: #c13c60; display: block; margin-bottom: 2px; }
   .stage { color: var(--muted); font-style: italic; }
   mark.fix {
     background: linear-gradient(transparent 58%, color-mix(in srgb, var(--grass) 42%, transparent) 0);
@@ -143,10 +124,12 @@
   .fixes { margin-top: 7px; display: flex; flex-direction: column; gap: 5px; }
   .fix-note { font-family: var(--sans); font-size: 12.5px; color: var(--muted); display: flex; gap: 7px; align-items: baseline; }
   .tag { font-size: 10px; font-weight: 800; border-radius: 4px; padding: 1px 5px; flex: none; }
-  .tag.g { background: color-mix(in srgb, var(--grass) var(--tint), transparent); color: var(--grass); }
-  .tag.t { background: color-mix(in srgb, var(--sky) var(--tint), transparent); color: var(--sky); }
-  .tag.q { background: color-mix(in srgb, var(--amber) var(--tint), transparent); color: var(--amber); }
-  .tag.k { background: linear-gradient(100deg, var(--accent), var(--coral)); color: #fff; }
+  /* Solid pastels, not translucent ones: a fill that changes with whatever sits behind it
+     cannot be checked for contrast once and trusted. Letters take a deeper tone of the hue. */
+  .tag.g { background: #e2f6e6; color: #236a35; }
+  .tag.t { background: #e2f0fd; color: #1a5f99; }
+  .tag.q { background: #fdeedb; color: #8d5307; }
+  .tag.k { background: linear-gradient(100deg, #7a3fd0, #c93f6b); color: #fff; }
   .was { text-decoration: line-through; opacity: .7; }
 
   .prose h3 { font-family: var(--serif); font-size: 19px; margin: 26px 0 6px; }
@@ -160,7 +143,7 @@
     font-family: var(--serif); font-size: 18px;
   }
   .prose sup { color: var(--muted); font-size: 11px; }
-  .wikilink { color: var(--accent); }
+  .wikilink { color: #7b3fd4; }
   .box { color: var(--muted); }
 
   .notice {
@@ -185,7 +168,7 @@
   }
   .facet:hover { background: var(--accent-soft); }
   .facet .n { color: var(--muted); font-size: 12px; }
-  .facet.clear { background: linear-gradient(100deg, var(--accent), var(--coral)); color: #fff; font-weight: 600; }
+  .facet.clear { background: linear-gradient(100deg, #7a3fd0, #c93f6b); color: #fff; font-weight: 600; }
   .facet .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; align-self: center; }
   @media (max-width: 760px) {
     .layout { grid-template-columns: 1fr; }
@@ -196,9 +179,9 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
   .w {
     background: var(--panel); border: 1px solid var(--line); border-left: 4px solid hsl(var(--h, 272) 70% 62%);
-    border-radius: 11px; padding: 13px 15px; cursor: pointer; transition: transform .12s, box-shadow .12s;
+    border-radius: 13px; padding: 13px 15px; cursor: pointer; transition: transform .12s, box-shadow .12s;
   }
-  .w:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -14px hsl(var(--h, 272) 70% 50%); }
+  .w:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -14px hsl(var(--h, 272) 60% 62%); }
   .w .hw { font-family: var(--serif); font-size: 18px; font-weight: 600; }
   .w .ipa { color: var(--muted); font-size: 12.5px; }
   .w .zh { font-size: 14px; margin-top: 3px; }
